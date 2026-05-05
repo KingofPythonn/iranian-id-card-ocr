@@ -1,8 +1,8 @@
-# Iranian ID Card OCR Scanner 🪪🔍
+# Iranian ID Card OCR Scanner
 
-An end-to-end computer vision and OCR system for scanning Iranian national ID cards and extracting structured personal information into an Excel file.
+A computer vision and OCR prototype for scanning Iranian national ID cards and extracting key information into an Excel file.
 
-This project uses a browser-based camera interface, OpenCV image processing, EasyOCR text recognition, FastAPI backend services, and rule-based validation to detect an ID card, correct its perspective, extract key fields, and export the result in a structured format.
+The project includes a browser-based camera interface, a FastAPI backend, OpenCV-based image processing, EasyOCR text recognition, and validation logic for Iranian national ID numbers.
 
 ---
 
@@ -16,58 +16,44 @@ This project uses a browser-based camera interface, OpenCV image processing, Eas
 
 ---
 
-## 🚀 Features
+## Features
 
-- 📷 Mobile-friendly browser camera interface
-- 🟩 On-screen alignment frame for positioning the ID card
-- ✂️ Image capture and cropping using the HTML Canvas API
-- 🌐 FastAPI backend for receiving and processing uploaded images
-- 🧠 ID card detection using OpenCV
-- 🔄 Perspective correction and card warping
-- 🖼 Image preprocessing for better OCR accuracy
-- 🔍 Persian and English OCR using EasyOCR
-- 📝 Extraction of key identity-card fields:
+- Browser camera interface for capturing ID card images
+- Mobile-friendly card alignment frame
+- Image cropping with the Canvas API
+- FastAPI backend for image upload and processing
+- Card detection and perspective correction using OpenCV
+- Image preprocessing to improve OCR results
+- Persian and English OCR using EasyOCR
+- Extraction of:
   - National ID number
   - First name
   - Family name
   - Father’s name
   - Birth date
-- 🔢 Persian/Arabic digit normalization
-- ✅ Iranian national ID checksum validation
-- 🛠 Rule-based correction for common OCR errors
-- 📊 Automatic Excel output generation
-- 🧪 Debug outputs for received image, warped image, and OCR regions
-- 🔐 HTTPS support for mobile camera access during local testing
+- Persian and Arabic digit normalization
+- Iranian national ID checksum validation
+- Basic correction rules for common OCR mistakes
+- Excel export using Pandas
+- Debug images for checking OCR regions and warped cards
+- HTTPS support for local mobile camera testing
 
 ---
 
-## 📌 Project Purpose
+## Project Overview
 
-Manual data entry from identity documents is slow, repetitive, and prone to mistakes.
+This project was built as a prototype for automating data entry from Iranian national ID cards.
 
-This project was developed as a computer vision and software engineering prototype to automate information extraction from Iranian national ID cards. It combines image processing, OCR, validation logic, and structured data export in one complete workflow.
+Instead of manually typing information from a card, the system captures an image, detects the card area, corrects the perspective, runs OCR, validates the extracted values, and saves the final result in a structured Excel file.
 
-The goal is not only to read text from an image, but also to build a practical pipeline that can:
-
-1. Capture the document image
-2. Isolate the card region
-3. Correct perspective distortion
-4. Recognize Persian and numerical text
-5. Clean and validate extracted values
-6. Save the result in an Excel file
-
----
-
-## 🧠 How It Works
-
-The main processing pipeline is:
+The full workflow is:
 
 ```text
 Input Image
    ↓
 Card Detection
    ↓
-Perspective Correction / Warping
+Perspective Correction
    ↓
 Image Preprocessing
    ↓
@@ -75,27 +61,29 @@ OCR
    ↓
 Field Extraction
    ↓
-Post-processing and Validation
+Validation
    ↓
 Excel Output
 ```
 
-### Workflow
+---
+
+## How It Works
 
 1. The user opens the camera page in a browser.
-2. The ID card is placed inside the on-screen guide frame.
-3. The current camera frame is captured.
-4. The selected card region is cropped using the Canvas API.
-5. The cropped image is uploaded to the FastAPI backend.
-6. OpenCV processes the image and performs perspective correction.
-7. EasyOCR reads Persian and numerical text from the card.
-8. The backend extracts fields such as name, family name, father’s name, birth date, and national ID number.
-9. Rule-based validation and normalization are applied.
-10. The final extracted information is saved into an Excel file.
+2. The ID card is placed inside the guide frame.
+3. The browser captures the current camera frame.
+4. The selected area is cropped with the Canvas API.
+5. The cropped image is sent to the FastAPI backend.
+6. OpenCV detects and warps the card.
+7. EasyOCR reads the visible text.
+8. The backend extracts fields such as name, family name, father’s name, birth date, and national ID.
+9. The extracted data is cleaned, normalized, and validated.
+10. The final record is saved to an Excel file.
 
 ---
 
-## 🛠 Technologies Used
+## Technologies
 
 ### Frontend
 
@@ -114,11 +102,11 @@ Excel Output
 - EasyOCR
 - NumPy
 - Pandas
-- RapidFuzz, optional, for fuzzy text/label matching
+- RapidFuzz, optional, for fuzzy label matching
 
 ---
 
-## 📦 Installation
+## Installation
 
 Clone the repository:
 
@@ -127,37 +115,39 @@ git clone https://github.com/KingofPythonn/iranian-id-card-ocr.git
 cd iranian-id-card-ocr
 ```
 
-Create and activate a virtual environment:
+Create a virtual environment:
 
 ```bash
 python -m venv venv
 ```
 
-On Windows:
+Activate it:
+
+**Windows:**
 
 ```bash
 venv\Scripts\activate
 ```
 
-On macOS/Linux:
+**macOS/Linux:**
 
 ```bash
 source venv/bin/activate
 ```
 
-Install the required dependencies:
+Install dependencies:
 
 ```bash
 pip install opencv-python-headless numpy pandas fastapi easyocr uvicorn
 ```
 
-Optional dependency for fuzzy matching:
+Optional fuzzy matching support:
 
 ```bash
 pip install rapidfuzz
 ```
 
-Optional dependency for EasyOCR GPU support:
+Optional GPU support for EasyOCR:
 
 ```bash
 pip install torch torchvision torchaudio
@@ -165,31 +155,25 @@ pip install torch torchvision torchaudio
 
 ---
 
-## 🧪 Usage
+## Usage
 
-Run the backend server from the project root:
+Run the backend server:
 
 ```bash
 python server.py
 ```
 
-If HTTPS is configured, the server can be accessed at:
-
-```text
-https://localhost:8443
-```
-
-Open the camera interface locally:
+Open the local camera page:
 
 ```text
 https://localhost:8443/camera.html
 ```
 
-To use the camera interface from a phone:
+To open it from a phone:
 
-1. Connect your phone and laptop to the same Wi-Fi network.
-2. Find your laptop IPv4 address.
-3. Open the following URL on your phone:
+1. Connect the phone and laptop to the same Wi-Fi network.
+2. Find the laptop’s IPv4 address.
+3. Open this address on the phone:
 
 ```text
 https://YOUR_LAPTOP_IP:8443/camera.html
@@ -201,15 +185,15 @@ Example:
 https://192.168.1.20:8443/camera.html
 ```
 
-If the browser shows a warning because of the self-signed certificate, choose the advanced option and continue for local testing.
+For local testing with a self-signed certificate, the browser may show a security warning. Use the advanced option to continue.
 
 ---
 
-## 🔐 HTTPS Setup for Mobile Camera Access
+## HTTPS Setup
 
-Mobile browsers usually require HTTPS to allow camera access.
+Mobile browsers usually require HTTPS before allowing camera access.
 
-For local testing, you can generate a self-signed certificate.
+For local testing, generate a self-signed certificate.
 
 ### Windows Git Bash
 
@@ -223,22 +207,22 @@ For local testing, you can generate a self-signed certificate.
 & "C:\Program Files\Git\usr\bin\openssl.exe" req -x509 -newkey rsa:2048 -nodes -out cert.pem -keyout key.pem -days 365 -subj "/CN=localhost"
 ```
 
-After generating the certificate files, place them in the same directory as the backend script.
+Place `cert.pem` and `key.pem` in the same directory as the backend script.
 
 ---
 
-## 📁 Output Files
+## Output Files
 
-The backend can generate several output files during processing.
+| File                | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `results.xlsx`      | Excel file containing extracted records         |
+| `last_received.png` | Last uploaded raw image                         |
+| `last_warped.png`   | Perspective-corrected card image                |
+| `last_debug.png`    | Debug image with OCR boxes and selected regions |
 
-| File                | Description                                        |
-| ------------------- | -------------------------------------------------- |
-| `results.xlsx`      | Excel file containing extracted records            |
-| `last_received.png` | Last uploaded raw image                            |
-| `last_warped.png`   | Perspective-corrected card image                   |
-| `last_debug.png`    | Debug image showing OCR boxes and selected regions |
+---
 
-### Example Excel Fields
+## Excel Fields
 
 | Field            | Description                      |
 | ---------------- | -------------------------------- |
@@ -253,35 +237,35 @@ The backend can generate several output files during processing.
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
-| Endpoint          | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| `/`               | Serves the main page                                         |
-| `/camera.html`    | Serves the camera interface                                  |
-| `/process-photo`  | Receives and processes uploaded ID card images               |
-| `/image-last`     | Displays the last received image                             |
-| `/warped-last`    | Displays the last warped card image                          |
-| `/debug-last`     | Displays the debug image with OCR boxes and selected regions |
-| `/excel-download` | Downloads the Excel output file                              |
-
----
-
-## 🧠 OCR and Validation Logic
-
-The backend includes several post-processing methods to improve extraction quality:
-
-- Persian and Arabic digits are normalized to standard Latin digits.
-- Birth dates are extracted using regular expressions.
-- National ID numbers are validated using checksum logic.
-- OCR artifacts and unnecessary characters are cleaned.
-- Fuzzy matching can be used to detect Persian field labels even when OCR output is imperfect.
-- Fixed regions of interest are used as fallback extraction zones after card warping.
-- Debug images are generated to help inspect OCR boxes and selected regions.
+| Endpoint          | Description                            |
+| ----------------- | -------------------------------------- |
+| `/`               | Serves the main page                   |
+| `/camera.html`    | Serves the camera interface            |
+| `/process-photo`  | Receives and processes uploaded images |
+| `/image-last`     | Shows the last received image          |
+| `/warped-last`    | Shows the last warped card image       |
+| `/debug-last`     | Shows the debug image                  |
+| `/excel-download` | Downloads the Excel output file        |
 
 ---
 
-## 📂 Project Structure
+## OCR and Validation
+
+The backend applies several cleanup and validation steps after OCR:
+
+- Converts Persian and Arabic digits to Latin digits
+- Extracts birth dates with regular expressions
+- Validates Iranian national ID numbers using checksum logic
+- Removes common OCR artifacts
+- Optionally uses fuzzy matching for Persian field labels
+- Uses fixed regions of interest as fallback extraction zones
+- Saves debug images to make OCR errors easier to inspect
+
+---
+
+## Project Structure
 
 ```text
 iranian-id-card-ocr/
@@ -300,84 +284,78 @@ iranian-id-card-ocr/
 └── requirements.txt
 ```
 
-> **Note:** The exact structure may vary depending on the final repository files.
+The exact structure may change as the project develops.
 
 ---
 
-## 🖼 Demo
+## Demo
 
-Add screenshots here after uploading demo images to the repository.
+Add screenshots after uploading demo images to the repository.
 
-```markdown
 ![Camera Interface](demo/screenshots/camera_interface.png)
 ![Warped Card](demo/screenshots/warped_card.png)
 ![Debug Output](demo/screenshots/debug_output.png)
-```
 
 Example output file:
 
-```markdown
 [Download sample Excel output](demo/sample_output.xlsx)
-```
 
 Use only synthetic, anonymized, blurred, or non-sensitive demo data.
 
 ---
 
-## ⚠️ Privacy Notice
+## Privacy Notice
 
-This project is intended for educational and research demonstration purposes.
+This project is intended for educational and research use.
 
-Do not upload real national ID card images, real personal information, or private extracted data to a public repository.
+Do not upload real national ID card images, personal information, or extracted private data to a public repository.
 
-Any demo images or Excel files included in this repository should be synthetic, anonymized, blurred, or used only for demonstration.
-
----
-
-## 🚧 Limitations
-
-- OCR accuracy depends on image quality, lighting, alignment, and resolution.
-- Persian text recognition may produce errors depending on font, blur, and contrast.
-- Rule-based extraction may need adjustment for different ID card layouts.
-- The project is a prototype and has not been tested on a large-scale real-world dataset.
-- Self-signed HTTPS certificates are suitable for local testing only, not production deployment.
+Any demo files included in the repository should be synthetic, anonymized, blurred, or safe for public use.
 
 ---
 
-## 🔮 Future Improvements
+## Limitations
 
-- Improve Persian OCR post-processing
-- Add a larger evaluation dataset
-- Add machine-learning-based document layout detection
-- Improve recognition under low-light or blurry conditions
-- Add a web dashboard for reviewing and correcting OCR results
-- Store extracted records in a database
+- OCR accuracy depends on image quality, lighting, focus, and alignment.
+- Persian text recognition may still produce mistakes.
+- Rule-based extraction may need changes for different card layouts.
+- The system is a prototype and has not been tested on a large real-world dataset.
+- Self-signed HTTPS certificates are only suitable for local testing.
+
+---
+
+## Future Improvements
+
+- Improve Persian OCR cleanup
+- Add a larger test dataset
+- Add document layout detection
+- Improve performance with low-light or blurry images
+- Add a review dashboard for correcting OCR results
+- Save records to a database
 - Add Docker support
 - Add automated tests
-- Separate frontend and backend for production deployment
+- Split frontend and backend for production deployment
 
 ---
 
-## 🛡 License
+## License
 
 This project is licensed under the MIT License.
 
-Feel free to use, modify, and share it.
+---
+
+## Credits
+
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [OpenCV](https://opencv.org/)
+- [EasyOCR](https://github.com/JaidedAI/EasyOCR)
+- [Pandas](https://pandas.pydata.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [React](https://react.dev/)
 
 ---
 
-## 🙌 Credits
-
-- [FastAPI](https://fastapi.tiangolo.com/) – backend API framework
-- [OpenCV](https://opencv.org/) – computer vision and image processing
-- [EasyOCR](https://github.com/JaidedAI/EasyOCR) – optical character recognition
-- [Pandas](https://pandas.pydata.org/) – Excel/data handling
-- [Tailwind CSS](https://tailwindcss.com/) – frontend styling
-- [React](https://react.dev/) – browser interface
-
----
-
-## 📬 Contact
+## Contact
 
 Created by **Sina Abbaszadeh Balanga**
 
