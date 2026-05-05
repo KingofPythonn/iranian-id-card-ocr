@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>کارت ملی</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        #root {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        function CameraFrameCapture() {
+            const [stream, setStream] = useState(null);
+            const [capturedImage, setCapturedImage] = useState(null);
+            const [error, setError] = useState('');
+            const [isVideoReady, setIsVideoReady] = useState(false); //Camera readiness status
+
+            //set the size of the frame
+            const FRAME_WIDTH = '340px';    //width of the frame
+            const FRAME_HEIGHT = '214px';   //hight of the frame
+
+
+            const SERVER_URL = 'https://192.168.125.20:8443/process-photo';
+
+
+            const videoRef = useRef(null);
+            const canvasRef = useRef(null);
+            const frameRef = useRef(null);
+
+            const startCamera = async () => {
+                try {
+                    setError('');
+
+                    if (!stream) {
+                        const mediaStream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'environment',
+                                width: { ideal: 4096 },
+                                height: { ideal: 2160 }
+                            },
+                            audio: false
+                        });
+
+                        setStream(mediaStream);
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = mediaStream;
+                        }
+                    } else if (videoRef.current && !videoRef.current.srcObject) {
+                        videoRef.current.srcObject = stream;
+                    }
+                } catch (err) {
+                    setError('دسترسی به دوربین امکان‌پذیر نیست. لطفاً مجوز دوربین را بدهید.');
+                    console.error('خطا در دسترسی به دوربین:', err);
+                }
+            };
+
+            useEffect(() => {
+                startCamera();
+            }, []);
+
+            const handleMetadataLoaded = () => {
+                setIsVideoReady(true);
+            };
+
+            const capturePhoto = () => {
+                const video = videoRef.current;
+                const canvas = canvasRef.current;
+                const frame = frameRef.current;
+
+                if (!video || !canvas || !frame) {
+                    setError('خطا: المان‌های دوربین کامل لود نشده‌اند.');
+                    return;
+                }
+
+                const videoWidth = video.videoWidth;
+                const videoHeight = video.videoHeight;
+
+                if (videoWidth === 0 || videoHeight === 0 || !isVideoReady) {
+                    setError('دوربین هنوز آماده نیست. لطفا چند لحظه صبر کنید.');
+                    return;
+                }
+
+                const containerWidth = video.clientWidth;
+                const containerHeight = video.clientHeight;
+
+                const videoAspectRatio = videoWidth / videoHeight;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                let displayedWidth, displayedHeight, offsetX, offsetY;
+
+                if (videoAspectRatio > containerAspectRatio) {
+                    displayedHeight = containerHeight;
+                    displayedWidth = containerHeight * videoAspectRatio;
+                    offsetX = (containerWidth - displayedWidth) / 2;
+                    offsetY = 0;
+                } else {
+                    displayedWidth = containerWidth;
+                    displayedHeight = containerWidth / videoAspectRatio;
+                    offsetX = 0;
+                    offsetY = (containerHeight - displayedHeight) / 2;
+                }
+
+                const frameRect = frame.getBoundingClientRect();
+
+                const scaleX = videoWidth / displayedWidth;
+                const scaleY = videoHeight / displayedHeight;
+
+                const relativeX = frameRect.left - offsetX;
+                const relativeY = frameRect.top - offsetY;
+
+                const cropX = relativeX * scaleX;
+                const cropY = relativeY * scaleY;
+
+                const cropWidth = frameRect.width * scaleX;
+                const cropHeight = frameRect.height * scaleY;
+
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+
+                const context = canvas.getContext('2d');
+                context.drawImage(
+                    video,
+                    cropX, cropY, cropWidth, cropHeight,
+                    0, 0, cropWidth, cropHeight
+                );
+
+                const imageData = canvas.toDataURL('image/png');
+                setCapturedImage(imageData);
+                setError('');
+            };
+
+
+            const retakePhoto = () => {
+                setCapturedImage(null);
+                setError('');
+            };
+
+            const uploadPhoto = async () => {
+                if (capturedImage) {
+                    setError('در حال ارسال عکس...');
+
+                    const response = await fetch(capturedImage);
+                    const blob = await response.blob();
+
+                    const formData = new FormData();
+                    formData.append('imageFile', blob, `cropped_id_card_${Date.now()}.png`);
+  
+                    try {
+                        // request to server
+                        const uploadResponse = await fetch(SERVER_URL, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (uploadResponse.ok) {
+                            setError('✅ عکس با موفقیت به سرور ارسال شد.');
+                        } else {
+                            const errorText = await uploadResponse.text();
+                            setError(`خطا در ارسال: ${uploadResponse.status} - ${errorText.substring(0, 50)}...`);
+                        }
+
+                    } catch (err) {
+                        setError('خطای اتصال به سرور. مطمئن شوید سرور در حال اجراست.');
+                        console.error('خطای ارسال:', err);
+                    }
+                }
+            };
+
+
+            return (
+                <div className="relative w-full bg-black overflow-hidden" style={{ height: '100dvh' }}>
+                    {/* camera */}
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        onLoadedMetadata={handleMetadataLoaded}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ display: capturedImage ? 'none' : 'block' }}
+                    />
+
+                    {capturedImage && (
+                        <div className="absolute inset-0">
+                            <img
+                                src={capturedImage}
+                                alt="عکس گرفته شده"
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+                    )}
+
+                    {!capturedImage && (
+                        <>
+                            {/* help box */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div ref={frameRef} className="relative" style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}>
+                                    {/* main box with border */}
+                                    <div className="absolute inset-0 border-4 border-green-500 rounded-lg shadow-2xl z-20">
+                                        <div className="absolute top-0 left-0 w-12 h-12 border-t-8 border-l-8 border-white rounded-tl-lg"></div>
+                                        <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-white rounded-tr-lg"></div>
+                                        <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-white rounded-bl-lg"></div>
+                                        <div className="absolute bottom-0 right-0 w-12 h-12 border-b-8 border-r-8 border-white rounded-br-lg"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* box text */}
+                            <div className="absolute w-[300px] text-center bottom-32 left-1/2 transform -translate-x-1/2 text-white text-lg bg-black bg-opacity-70 px-6 py-3 rounded-full z-30" style={{ direction: 'rtl' }}>
+                                کارت ملی را داخل کادر قرار دهید
+                            </div>
+                        </>
+                    )}
+
+                    {/* massage error */}
+                    {error && (
+                        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md ${error.startsWith('✅') ? 'bg-green-500' : 'bg-red-500'} text-white p-4 rounded-lg text-center z-40`} style={{ direction: 'rtl' }}>
+                            {error}
+                        </div>
+                    )}
+
+                    <canvas ref={canvasRef} className="hidden" />
+
+                    {/* bottons */}
+                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-30">
+                        {!capturedImage ? (
+                            <div className="flex gap-4 justify-center items-center">
+                                {/* Botton to capture photo  */}
+                                <button
+                                    onClick={capturePhoto}
+                                    className={`p-6 rounded-full transition-all shadow-2xl pointer-events-auto ${isVideoReady ? 'bg-white hover:bg-gray-200' : 'bg-gray-400 cursor-not-allowed'}`}
+                                    disabled={!isVideoReady}
+                                >
+                                    <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
+                                        <img src="photo/takePhoto.png" alt="گرفتن عکس" className="w-8 h-8 " />
+                                    </div>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex gap-3 pointer-events-auto">
+                                {/* botton to retake photo */}
+                                <button
+                                    onClick={retakePhoto}
+                                    className="flex-1 bg-gray-800 bg-opacity-90 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+                                >
+                                    <img src="photo/retakePhoto.png" alt="عکس دوباره" className="w-8 h-8 " />
+                                    <span style={{ direction: 'rtl' }}>عکس دوباره</span>
+                                </button>
+
+                                {/* botton to upload photo */}
+                                <button
+                                    onClick={uploadPhoto}
+                                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+                                >
+                                    <img src="photo/tickBox.png" alt=" تایید و ارسال" className="w-8 h-8 " />
+
+                                    <span style={{ direction: 'rtl' }}>تأیید و ارسال</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CameraFrameCapture />);
+    </script>
+</body>
+
+</html>
