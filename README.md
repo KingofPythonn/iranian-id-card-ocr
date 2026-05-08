@@ -46,7 +46,7 @@ This project was built as a prototype for automating data entry from Iranian nat
 
 Instead of manually typing information from a card, the system captures an image, detects the card area, corrects the perspective, runs OCR, validates the extracted values, and saves the final result in a structured Excel file.
 
-- [Project*report_in* english](<https://github.com/KingofPythonn/iranian-id-card-ocr/blob/main/docs/Project%20Report(in%20English)%20.pdf>)
+- [Project_report_in_english](<https://github.com/KingofPythonn/iranian-id-card-ocr/blob/main/docs/Project%20Report(in%20English)%20.pdf>)
 
 The full workflow is:
 
